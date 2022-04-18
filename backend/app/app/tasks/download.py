@@ -21,6 +21,7 @@ def set_public(file):
     s3_object = s3.Bucket(AWS_BUCKET).Object(file)
     s3_object.Acl().put(ACL='public-read')
 
+
 async def async_download(data, db):
     item = crud.item.create(db=db, obj_in=data)
     if not os.path.exists("downloads"):
@@ -75,5 +76,5 @@ async def get_async(url, session):
         async with session.get(url=url, ssl=False) as response:
             return await response.read(), file_name
     except Exception as e:
-        print("Unable to get url {} due to {}.".format(url, e.__class__))
+        print(f"Unable to get url {url} due to {e.__class__}.")
         return False, False
