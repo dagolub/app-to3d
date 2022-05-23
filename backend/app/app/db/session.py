@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine
+import motor.motor_asyncio
 from sqlalchemy.orm import sessionmaker
-
-from app.core.config import settings
-
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+import asyncio
+MONGODB_URL = "mongodb://root:mongo@localhost:27017/?authMechanism=DEFAULT"
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URL)
+client.get_io_loop = asyncio.get_event_loop
+database = client.to3d

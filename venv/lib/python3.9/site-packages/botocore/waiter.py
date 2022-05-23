@@ -10,15 +10,16 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import jmespath
 import logging
 import time
 
-from botocore.utils import get_service_module_name
-from botocore.docs.docstring import WaiterDocstring
-from .exceptions import WaiterError, ClientError, WaiterConfigError
-from . import xform_name
+import jmespath
 
+from botocore.docs.docstring import WaiterDocstring
+from botocore.utils import get_service_module_name
+
+from . import xform_name
+from .exceptions import ClientError, WaiterConfigError, WaiterError
 
 logger = logging.getLogger(__name__)
 
@@ -345,8 +346,8 @@ class Waiter(object):
                 return
             if current_state == 'failure':
                 reason = 'Waiter encountered a terminal failure state: %s' % (
-                        acceptor.explanation
-                        )
+                    acceptor.explanation
+                )
                 raise WaiterError(
                     name=self.name,
                     reason=reason,
@@ -356,7 +357,7 @@ class Waiter(object):
                 if last_matched_acceptor is None:
                     reason = 'Max attempts exceeded'
                 else:
-                    reason = 'Max attempts exceeded. Previously accepted state: %s' %(
+                    reason = 'Max attempts exceeded. Previously accepted state: %s' % (
                         acceptor.explanation
                     )
                 raise WaiterError(

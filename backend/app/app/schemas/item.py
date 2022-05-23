@@ -1,5 +1,5 @@
 from typing import Optional
-
+from bson.objectid import ObjectId
 from pydantic import BaseModel
 
 
@@ -30,8 +30,8 @@ class ItemUpdate(ItemBase):
 
 # Properties shared by models stored in DB
 class ItemInDBBase(ItemBase):
-    id: int
-    owner_id: int
+    _id: str
+    owner_id: str
 
     class Config:
         orm_mode = True

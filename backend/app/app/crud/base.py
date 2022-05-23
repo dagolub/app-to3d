@@ -1,11 +1,10 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
-
+from bson.objectid import ObjectId
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
+
 from sqlalchemy.orm import Session
-
+from pydantic import BaseModel
 from app.db.base_class import Base
-
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
@@ -23,13 +22,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    def get(self, db: Session, id: Any) -> Optional[ModelType]:
-        return db.query(self.model).filter(self.model.id == id).first()
+    async def get(self, db: Session, id: str) -> Optional[ModelType]:
+        return await db["users"].find_one({"_id": ObjectId(id)})
 
-    def get_multi(
+    async def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
-        return db.query(self.model).offset(skip).limit(limit).all()
+        result = []
+        async for document in db["users"].find():
+            result.append(document)
+        return result
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)

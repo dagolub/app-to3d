@@ -1,16 +1,11 @@
 """Useful mocks for unit testing."""
-from __future__ import absolute_import, unicode_literals
-
 import numbers
 from datetime import datetime, timedelta
+from typing import Any, Mapping, Sequence
+from unittest.mock import Mock
 
-try:
-    from case import Mock
-except ImportError:
-    try:
-        from unittest.mock import Mock
-    except ImportError:
-        from mock import Mock
+from celery import Celery
+from celery.canvas import Signature
 
 
 def TaskMessage(
@@ -28,10 +23,11 @@ def TaskMessage(
     # type: (...) -> Any
     """Create task message in protocol 2 format."""
     kwargs = {} if not kwargs else kwargs
-    from celery import uuid
     from kombu.serialization import dumps
+
+    from celery import uuid
     id = id or uuid()
-    message = Mock(name='TaskMessage-{0}'.format(id))
+    message = Mock(name=f'TaskMessage-{id}')
     message.headers = {
         'id': id,
         'task': name,
@@ -53,16 +49,17 @@ def TaskMessage1(
     kwargs=None,  # type: Mapping
     callbacks=None,  # type: Sequence[Signature]
     errbacks=None,  # type: Sequence[Signature]
-    chain=None,  # type: Squence[Signature]
+    chain=None,  # type: Sequence[Signature]
     **options  # type: Any
 ):
     # type: (...) -> Any
     """Create task message in protocol 1 format."""
     kwargs = {} if not kwargs else kwargs
-    from celery import uuid
     from kombu.serialization import dumps
+
+    from celery import uuid
     id = id or uuid()
-    message = Mock(name='TaskMessage-{0}'.format(id))
+    message = Mock(name=f'TaskMessage-{id}')
     message.headers = {}
     message.payload = {
         'task': name,
@@ -112,3 +109,29 @@ def task_message_from_sig(app, sig, utc=True, TaskMessage=TaskMessage):
         utc=utc,
         **sig.options
     )
+
+
+class _ContextMock(Mock):
+    """Dummy class implementing __enter__ and __exit__.
+
+    The :keyword:`with` statement requires these to be implemented
+    in the class, not just the instance.
+    """
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        pass
+
+
+def ContextMock(*args, **kwargs):
+    """Mock that mocks :keyword:`with` statement contexts."""
+    obj = _ContextMock(*args, **kwargs)
+    obj.attach_mock(_ContextMock(), '__enter__')
+    obj.attach_mock(_ContextMock(), '__exit__')
+    obj.__enter__.return_value = obj
+    # if __exit__ return a value the exception is ignored,
+    # so it must return None here.
+    obj.__exit__.return_value = None
+    return obj

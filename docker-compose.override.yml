@@ -1,8 +1,8 @@
 version: "3.3"
 services:
-  db:
+  mongo:
     ports:
-      - "5432:5432"
+      - "27017:27017"
 
   proxy:
     ports:
@@ -30,10 +30,6 @@ services:
       - traefik.enable=true
       - traefik.http.routers.${STACK_NAME?Variable not set}-traefik-public-http.rule=Host(`${DOMAIN?Variable not set}`)
       - traefik.http.services.${STACK_NAME?Variable not set}-traefik-public.loadbalancer.server.port=80
-
-  pgadmin:
-    ports:
-      - "5050:5050"
 
   backend:
     ports:
@@ -70,9 +66,7 @@ services:
       args:
         INSTALL_DEV: ${INSTALL_DEV-true}
         INSTALL_JUPYTER: ${INSTALL_JUPYTER-true}
-  queue:
-    ports:
-      - "5672:5672"
+
   frontend:
     build:
       context: ./frontend

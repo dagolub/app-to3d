@@ -1,4 +1,4 @@
-#!/Users/dg/web/app-to-3d.com/backend/app/venv/bin/python3.9
+#!/Users/dg/web/app-to-3d.com/venv/bin/python3.9
 # coding: utf-8
 
 """
