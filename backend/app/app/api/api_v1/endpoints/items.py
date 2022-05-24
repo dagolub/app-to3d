@@ -32,8 +32,8 @@ async def read_items(
     if crud.user.is_superuser(current_user):
         items = await crud.item.get_multi(db, skip=skip, limit=limit)
     else:
-        items = crud.item.get_multi_by_owner(
-            db=db, owner_id=current_user.id, skip=skip, limit=limit
+        items = await crud.item.get_multi_by_owner(
+            db=db, owner_id=current_user["_id"], skip=skip, limit=limit
         )
     return items
 

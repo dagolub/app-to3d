@@ -23,9 +23,7 @@ class Thingiverse:
         main_page = self.r.get(f'https://{self.domain}')
         result = re.search("https.*?app\.bundle\.js\?[0-9]+", main_page.text)[0] # noqa
         js_content = self.r.get(result)
-        token = re.search(r"s=\"(.*?)\"", js_content.text)
-        if token:
-            print(token[1])
+        if token := re.search(r"u=\"([a-z0-9]+)\"", js_content.text):
             self.headers['Authorization'] = 'Bearer ' + token[1]
 
     def parse_items(self):
@@ -33,6 +31,7 @@ class Thingiverse:
         items = json.loads(f.read())
         self.bar = IncrementalBar('Items', max=len(items))
         result = []
+
         for item in items:
             id = item.split(':')[-1].strip()
             url = f"https://api.{self.domain}/things/{id}"

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, TypeVar, List
 from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from sqlalchemy.orm import Session
@@ -7,11 +7,24 @@ from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+from app.db.base_class import Base
+ModelType = TypeVar("ModelType", bound=Base)
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+    async def get(self, db: Session, id: str) -> Optional[ModelType]:
+        return await db["users"].find_one({"_id": ObjectId(id)}) # noqa
+
+    async def get_multi(
+        self, db: Session, *, skip: int = 0, limit: int = 100
+    ) -> List[ModelType]:
+        result = []
+        async for document in db["users"].find().skip(skip).limit(limit): # noqa
+            result.append(document)
+        return result
+
     async def get_by_email(self, db, email: str) -> Optional[User]:
-        return await db["users"].find_one({"email": email})
+        return await db["users"].find_one({"email": email}) # noqa
 
     async def create(self, db, obj_in: dict) -> User:
         obj_in = jsonable_encoder(obj_in)
@@ -22,8 +35,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             "is_superuser": obj_in.get("is_superuser") or False,
             "is_active": True
         }
-        obj = await db["users"].insert_one(document=db_obj)
-        return await db["users"].find_one({"_id": ObjectId(obj.inserted_id)})
+        obj = await db["users"].insert_one(document=db_obj) # noqa
+        return await db["users"].find_one({"_id": ObjectId(obj.inserted_id)}) # noqa
 
     async def update(
         self, db: Session, *, db_obj: User, obj_in: Union[UserUpdate, Dict[str, Any]]
@@ -39,22 +52,24 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             update_data["hashed_password"] = hashed_password
         if 'email' in update_data:
             del update_data['email']
-        await db["users"].update_one({"_id": db_obj['_id']},{'$set': update_data})
-        return await db["users"].find_one({"_id": db_obj['_id']})
+        await db["users"].update_one({"_id": db_obj['_id']},{'$set': update_data}) # noqa
+        return await db["users"].find_one({"_id": db_obj['_id']}) # noqa
 
     async def authenticate(self, db: AsyncIOMotorClient, *, email: str, password: str) -> Optional[User]:
-        user = await self.get_by_email(db, email=email)
-        if not user:
+        current_user = await self.get_by_email(db, email=email)
+        if not current_user:
             return None
-        if not verify_password(password, user["hashed_password"]):
+        if not verify_password(password, current_user["hashed_password"]):
             return None
-        return user
+        return current_user
 
-    def is_active(self, user: User) -> bool:
-        return user["is_active"]
+    @staticmethod
+    def is_active(current_user: User) -> bool:
+        return current_user["is_active"]
 
-    def is_superuser(self, user: User) -> bool:
-        return user["is_superuser"]
+    @staticmethod
+    def is_superuser(current_user: User) -> bool:
+        return current_user["is_superuser"]
 
 
 user = CRUDUser(User)
