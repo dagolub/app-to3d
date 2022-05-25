@@ -82,6 +82,7 @@ class Thingiverse:
                 if 'comments' in url:
                     return self.parse_comments(response)
         except Exception as e:
+            pass
             #print("Unable to get url {} due to {}.".format(url, e.__class__))
 
     @staticmethod
