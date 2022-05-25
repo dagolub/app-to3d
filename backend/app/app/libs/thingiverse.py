@@ -82,7 +82,7 @@ class Thingiverse:
                 if 'comments' in url:
                     return self.parse_comments(response)
         except Exception as e:
-            print("Unable to get url {} due to {}.".format(url, e.__class__))
+            #print("Unable to get url {} due to {}.".format(url, e.__class__))
 
     @staticmethod
     def parse_categories(response):

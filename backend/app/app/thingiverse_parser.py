@@ -9,11 +9,12 @@ def main():
     thingiverse = Thingiverse()
     thingiverse.login()
     items = thingiverse.parse_items()
-    print(items)
-    # requests.post("http://localhost:8001/api/v1/items/upload/1",
-    #               data=json.dumps({'data': items}),
-    #               headers={'Content-Type': 'application/json'})
+    with open('data.json', 'w') as outfile:
+        json.dump(items, outfile)
 
 
 if __name__ == "__main__":
-    typer.run(main)
+    try:
+        typer.run(main)
+    except Exception:
+        pass
