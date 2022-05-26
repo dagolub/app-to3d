@@ -5,6 +5,7 @@ import json
 from progress.bar import IncrementalBar
 import asyncio
 import aiohttp
+import sys
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning) # noqa
 
 
@@ -26,13 +27,19 @@ class Thingiverse:
         if token := re.search(r"u=\"([a-z0-9]+)\"", js_content.text):
             self.headers['Authorization'] = 'Bearer ' + token[1]
 
-    def parse_items(self):
+    def parse_items(self, chunk):
         f = open("data/items.json", "r")
         items = json.loads(f.read())
         self.bar = IncrementalBar('Items', max=len(items))
         result = []
+        chunked_list = list()
+        chunk_size = 20000
+        for i in range(0, len(items), chunk_size):
+            chunked_list.append(items[i:i + chunk_size])
 
-        for item in items:
+        print("Chunk " + str(chunk) + " from " + str(len(chunked_list)))
+
+        for item in chunked_list[chunk]:
             try:
                 id = item.split(':')[-1].strip()
                 url = f"https://api.{self.domain}/things/{id}"
