@@ -33,10 +33,13 @@ class Thingiverse:
         result = []
 
         for item in items:
-            id = item.split(':')[-1].strip()
-            url = f"https://api.{self.domain}/things/{id}"
-            result.append(asyncio.run(self.parse(self.r.get(url, headers=self.headers)))) # noqa
-            self.bar.next()
+            try:
+                id = item.split(':')[-1].strip()
+                url = f"https://api.{self.domain}/things/{id}"
+                result.append(asyncio.run(self.parse(self.r.get(url, headers=self.headers)))) # noqa
+                self.bar.next()
+            except Exception:
+                pass
         self.bar.finish()
         return result
 
